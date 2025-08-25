@@ -1,0 +1,317 @@
+- type: masonry
+  path: hallo
+  title: "Hallo"
+  icon: mdi:air-purifier
+  badges:
+    - type: entity
+      entity: automation.grow_on
+      show_name: false
+      show_state: true
+      show_icon: true
+    - type: entity
+      entity: light.bild
+      show_name: false
+      show_state: true
+      show_icon: true
+      tap_action:
+        action: none
+    - type: entity
+      entity: sensor.t_h_sensor_luftfeuchtigkeit
+      name: RH (Innen)
+    - type: entity
+      entity: sensor.ph
+      name: pH
+      icon: mdi:ph
+    - type: entity
+      entity: sensor.t_h_sensor_temperatur
+      name: Temp (Innen)
+    - type: entity
+      entity: sensor.t_h_sensor_batteriestatus
+      name: TH-Batt
+    - type: entity
+      entity: sensor.grow_box_3fach_leistung
+    - type: entity
+      entity: input_select.grow_phase
+  cards:
+    - type: markdown
+      content: |
+        # 👋 Hallo Ben — Grow Dashboard (BenJG)
+      card_mod:
+        style: &neon_card |
+          ha-card {
+            background:#000;
+            color:#0f0;
+            border:1px solid #0f0;
+            border-radius:16px;
+            box-shadow:0 0 12px #00ff0066;
+          }
+          .value {
+            color:#0f0 !important;
+            text-shadow:0 0 6px #0f0;
+          }
+    - type: grid
+      columns: 4
+      square: false
+      cards:
+        - type: gauge
+          name: pH (Cannabis Hydro)
+          entity: sensor.ph
+          unit: ""
+          min: 4
+          max: 10
+          needle: true
+          severity:
+            green: 5.5
+            yellow: 6.3
+            red: 8
+          card_mod:
+            style: *neon_card
+        - type: gauge
+          name: EC (mS/cm)
+          entity: sensor.ec
+          unit: "mS/cm"
+          min: 0
+          max: 3
+          needle: true
+          severity:
+            green: 1.8
+            yellow: 2.2
+            red: 2.8
+          card_mod:
+            style: *neon_card
+        - type: gauge
+          name: Temp (°C, Wasser)
+          entity: sensor.wasser_temp
+          unit: "°C"
+          min: 10
+          max: 35
+          needle: true
+          severity:
+            green: 18
+            yellow: 24
+            red: 30
+          card_mod:
+            style: *neon_card
+        - type: gauge
+          name: Luftfeuchte (%)
+          entity: sensor.t_h_sensor_luftfeuchtigkeit
+          unit: "%"
+          min: 20
+          max: 100
+          needle: true
+          severity:
+            green: 45
+            yellow: 70
+            red: 80
+          card_mod:
+            style: *neon_card
+    - type: grid
+      columns: 2
+      square: false
+      cards:
+        - type: gauge
+          name: Temp (°C, Innen)
+          entity: sensor.t_h_sensor_temperatur
+          unit: "°C"
+          min: 10
+          max: 35
+          needle: true
+          severity:
+            green: 18
+            yellow: 24
+            red: 30
+          card_mod:
+            style: *neon_card
+        - type: gauge
+          name: Luftfeuchte Außen (%)
+          entity: sensor.yinmik_water_quality_tester_humidity
+          unit: "%"
+          min: 20
+          max: 100
+          needle: true
+          severity:
+            green: 45
+            yellow: 70
+            red: 80
+          card_mod:
+            style: *neon_card
+    - type: conditional
+      conditions:
+        - entity: sensor.t_h_sensor_luftfeuchtigkeit
+          above: 70
+      card:
+        type: markdown
+        content: >
+          ### ⚠️ **Achtung: Schimmelgefahr**
+          RH = **{{ states('sensor.t_h_sensor_luftfeuchtigkeit') }}%**.
+          Entfeuchten / Lüftung erhöhen!
+        card_mod:
+          style: *neon_card
+    - type: conditional
+      conditions:
+        - entity: sensor.ph
+          below: 5.5
+      card:
+        type: markdown
+        content: >
+          ### ⚠️ **pH zu niedrig**
+          pH = **{{ states('sensor.ph') }}** → pH+ prüfen/dosieren.
+        card_mod:
+          style: *neon_card
+    - type: conditional
+      conditions:
+        - entity: sensor.ph
+          above: 6.5
+      card:
+        type: markdown
+        content: >
+          ### ⚠️ **pH zu hoch**
+          pH = **{{ states('sensor.ph') }}** → pH− prüfen/dosieren.
+        card_mod:
+          style: *neon_card
+    - type: conditional
+      conditions:
+        - entity: sensor.ec
+          above: 2.2
+      card:
+        type: markdown
+        content: >
+          ### ⚠️ **EC zu hoch**
+          EC = **{{ states('sensor.ec') }} mS/cm** → Nährlösung verdünnen.
+        card_mod:
+          style: *neon_card
+    - type: conditional
+      conditions:
+        - entity: sensor.wasser_temp
+          above: 26
+      card:
+        type: markdown
+        content: >
+          ### ⚠️ **Wassertemperatur zu hoch**
+          {{ states('sensor.wasser_temp') }} °C → Chiller/Eisakkus/Lüftung prüfen.
+        card_mod:
+          style: *neon_card
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: "pH / EC / TDS – letzte 24h"
+        show_states: true
+      graph_span: "24h"
+      now:
+        show: true
+      apex_config:
+        chart:
+          background: "#000000"
+        grid:
+          borderColor: "#222222"
+        xaxis:
+          labels:
+            style:
+              colors: "#00ff00"
+        yaxis:
+          labels:
+            style:
+              colors: "#00ff00"
+        legend:
+          labels:
+            colors: "#00ff00"
+        tooltip:
+          theme: "dark"
+        colors:
+          - "#00ff00"
+          - "#00ffff"
+          - "#ff00ff"
+        annotations:
+          yaxis:
+            - y: 5.5
+              yAxisIndex: 0
+              borderColor: "#00aa00"
+              label:
+                text: "pH 5.5"
+            - y: 6.5
+              yAxisIndex: 0
+              borderColor: "#00aa00"
+              label:
+                text: "pH 6.5"
+      series:
+        - entity: sensor.ph
+          name: pH
+          type: line
+          yaxis_id: left
+          float_precision: 2
+          group_by:
+            duration: "5min"
+            func: avg
+        - entity: sensor.ec
+          name: EC (mS/cm)
+          type: line
+          yaxis_id: right
+          float_precision: 3
+          group_by:
+            duration: "5min"
+            func: avg
+        - entity: sensor.tds_ppm
+          name: TDS (ppm)
+          type: line
+          yaxis_id: right
+          group_by:
+            duration: "5min"
+            func: avg
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: "Wassertemperatur – letzte 7 Tage"
+        show_states: true
+      graph_span: "7d"
+      now:
+        show: true
+      apex_config:
+        chart:
+          background: "#000000"
+        grid:
+          borderColor: "#222222"
+        xaxis:
+          labels:
+            style:
+              colors: "#00ff00"
+        yaxis:
+          labels:
+            style:
+              colors: "#00ff00"
+        legend:
+          labels:
+            colors: "#00ff00"
+        tooltip:
+          theme: "dark"
+        colors:
+          - "#00ff00"
+      series:
+        - entity: sensor.wasser_temp
+          name: "Temp (°C)"
+          type: line
+          color: "#00ff00"
+          group_by:
+            duration: "30min"
+            func: avg
+    - type: entities
+      title: Water Quality (YINMIK)
+      state_color: true
+      entities:
+        - entity: input_select.grow_phase
+        - entity: sensor.wasser_temp
+        - entity: sensor.ph
+        - entity: sensor.ec
+        - entity: sensor.tds_ppm
+        - entity: sensor.orp
+        - entity: sensor.luftfeuchte
+        - entity: fan.fan_switch_module
+        - entity: switch.abluftlufter
+        - entity: switch.grow_box_3fach_steckdose_2
+        - entity: switch.grow_box_3fach_steckdose_3
+      header:
+        type: graph
+        entity: sensor.ph
+        detail: 2
+      footer:
+        type: buttons
+        entities: []
